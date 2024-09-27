@@ -1,0 +1,42 @@
+#!/bin/bash
+Main() {
+	readarray -t buckets < monitor.buckets || exit "$?"
+	sync_buckets=()
+	Versions
+	for bucket in "${buckets[@]}"; do
+		if IsBucketChanged "$bucket"; then
+			sync_buckets+=("$bucket")
+		fi
+	done
+	HandleChanges "${sync_buckets[@]}"
+	exit "$?"
+}
+Versions()
+{
+	mkdir -p "$PWD/versions"
+	if ! (cd "$PWD/versions" || exit; git status --porcelain=v1); then
+		git init "$PWD/versions"
+	fi
+}
+IsBucketChanged() {
+	aws s3api list-object-versions --no-sign-request --bucket "$bucket" > "versions/$bucket.json"
+	[ -n "$(cd versions || exit ; git status --porcelain=v1 "$bucket.json")" ]
+}
+HandleChanges() {
+	if [ -n "${sync_buckets[*]}" ]; then
+		echo "Changes to ${sync_buckets[*]}"
+		(set -x; cd versions || exit
+		git add "."
+		git commit -m "Changes to ${sync_buckets[*]}")
+	fi
+	sb=$(mktemp "$PWD"/sync.buckets.XXXXXXXX)
+	for bucket in "${sync_buckets[@]}"; do
+		echo "$bucket"
+	done > "$sb"
+	mv -v "$sb" sync.buckets
+	[ -n "${sync_buckets[*]}" ]
+}
+Main
+# If we ever eff up main
+# shellcheck disable=SC2317
+exit 0

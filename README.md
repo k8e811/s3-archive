@@ -14,11 +14,10 @@ Generic of existing tooling to obtain archive history of public records S3 bucke
 ```monitor-s3-object-versions```
 
 * Reads ```monitor.buckets``` for a list of buckets
-* Replaces ```sync.buckets```
 * Creates a ```versions``` directory if it does not exist
 * Initializes the ```versions``` directory as a git repo
 * For each bucket in monitor.buckets
   * Performs an aws s3api list-object-versions to ```versions/$bucket```
-  * Checks if ```versions/$bucket``` has changed and adds the bucket to it
-
-
+  * Checks if ```versions/$bucket``` has changed and adds the bucket to sync list
+* Commits the list-objects files
+* Has non-zero exit code when nothing changes
