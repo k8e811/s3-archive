@@ -20,4 +20,5 @@ Generic of existing tooling to obtain archive history of public records S3 bucke
   * Performs an aws s3api list-object-versions to ```versions/$bucket```
   * Checks if ```versions/$bucket``` has changed and adds the bucket to sync list
 * Commits the list-objects files
-* Has non-zero exit code when nothing changes
+* Creates ```sync.buckets``` with the list of buckets that changed
+* Zero exit code when there are changes.  Non-zero when there are not (or failure)
