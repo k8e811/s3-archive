@@ -22,3 +22,14 @@ Generic of existing tooling to obtain archive history of public records S3 bucke
 * Commits the list-objects files
 * Creates ```sync.buckets``` with the list of buckets that changed
 * Zero exit code when there are changes.  Non-zero when there are not (or failure)
+
+### sync-s3-zfs
+
+```sync-s3-zfs```
+
+* Reads ```${SYNC_S3_BUCKETS:-sync.buckets}``` for a list of buckets
+* For each bucket
+  * Creates a sync2zfs/$bucketname directory for each bucket
+  * Creates a sync2zfs/.logs directory
+  * Fails if the directory is NOT zfs
+  * Syncs using ```aws s3 sync ${SYNC_S3_ZFS_ARGS:+${SYNC_S3_ZFS_ARGS}}
