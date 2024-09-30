@@ -29,7 +29,8 @@ Generic of existing tooling to obtain archive history of public records S3 bucke
 
 * Reads ```${SYNC_S3_BUCKETS:-sync.buckets}``` for a list of buckets
 * For each bucket
-  * Creates a sync2zfs/$bucketname directory for each bucket
-  * Creates a sync2zfs/.logs directory
+  * Creates a zfs-s3/.logs directory
+  * Creates a zfs-s3/$bucketname directory for each bucket
   * Fails if the directory is NOT zfs
-  * Syncs using ```aws s3 sync ${SYNC_S3_ZFS_ARGS:+${SYNC_S3_ZFS_ARGS}}
+  * Syncs using ```aws s3 sync ...```
+  * Creates a snapshot indicating start time and bucket
