@@ -1,0 +1,46 @@
+#!/bin/bash
+set -o pipefail
+Main(){
+	local bucket logdir syncdir fs timestamp logfile r_sync r_snapshot ec=0
+	local buckets=()
+	readarray -t buckets < "${SYNC_S3_BUCKETS:-sync.buckets}" || exit $?
+	for bucket in "${buckets[@]}"; do
+		logdir="zfs-s3/.logs/$bucket" syncdir="zfs-s3/$bucket"
+		mkdir -p "$logdir" "$syncdir"
+		# Allow $syncdir to be a symlink
+		if CheckZFS "$syncdir/."; then
+			echo "Syncing $bucket at $timestamp"
+			fs="$(CheckZFS "$syncdir/." | awk 'NR==2{print $1}')"
+			timestamp="$(TimeStamp)"
+			logfile="$logdir/$bucket-$timestamp.log"
+			# Use time executable to get stats in logs
+			\time aws s3 sync --no-sign-request --only-show-errors --no-progress \
+				--delete --exact-timestamps "s3://${bucket##s3://}" "$syncdir" 2>&1 |
+				tee -a "$logfile"
+			r_sync="$?"
+			echo "sync exit code: $r_sync" | tee -a "$logfile"
+			sudo zfs snapshot "$fs@$timestamp-$bucket"
+			r_snapshot="$?"
+			echo "zfs snapshot exit code: $r_snapshot" | tee -a "$logfile"
+			(( ec="$ec|$r_sync|$r_snapshot" ))
+		else
+			echo "$syncdir is not zfs"
+			(( ec="$ec|2" ))
+		fi
+	done
+	exit "$ec"
+}
+CheckZFS() {
+	df -P -t zfs "$1"
+}
+TimeStamp() {
+	local d0 d1 d2
+	d0="$(TZ=UTC date -Iseconds)"
+	d1="${d0%[-+]*}"
+	d2="${d1//[:-]/}"
+	echo "$d2"
+}
+Main
+# If we ever eff up main
+# shellcheck disable=SC2317
+exit 0
