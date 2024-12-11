@@ -4,6 +4,11 @@ Main(){
 	local bucket logdir syncdir fs timestamp logfile r_sync r_snapshot ec=0
 	local buckets=()
 	readarray -t buckets < "${SYNC_S3_BUCKETS:-sync.buckets}" || exit $?
+	# We're biased towards asdf
+	# shellcheck disable=SC1090
+	if ! command -v aws; then
+		. ~/.asdf/asdf.sh
+	fi
 	for bucket in "${buckets[@]}"; do
 		logdir="zfs-s3/.logs/$bucket" syncdir="zfs-s3/$bucket"
 		mkdir -p "$logdir" "$syncdir"

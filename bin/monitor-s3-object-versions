@@ -2,6 +2,11 @@
 Main() {
 	readarray -t buckets < monitor.buckets || exit "$?"
 	sync_buckets=()
+	# We're biased towards asdf
+	# shellcheck disable=SC1090
+	if ! command -v aws; then
+		. ~/.asdf/asdf.sh
+	fi
 	Versions
 	for bucket in "${buckets[@]}"; do
 		if IsBucketChanged "$bucket"; then
