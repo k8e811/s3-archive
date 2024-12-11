@@ -6,15 +6,28 @@ Generic of existing tooling to obtain archive history of public records S3 bucke
 
 * Clone this repository.
 * Add the bin directory of this repository to your path
+* Install the AWS cli.  We recommend using asdf.
+
+## Other Setup
+
+* Keep version history from contaminating git repo
+  * `cd versions; git init .`
+* Per bucket snapshots
+  * Create the directory zfs-s3
+  * For each bucket provide a symlink to the directory (preferably mount
+    root) of the zfs filesystem for that bucket's snapshots
+* Bucket snapshots to a different filesystem
+  * Move/Remove the zfs-s3 directory and create a symlink to the the directory
+    (preferably mount root) of the zfs filesystem to hold all the bucket snapshots
 
 ## Usage
 
 ### monitor-s3-object-versions
 
-```monitor-s3-object-versions```
+`monitor-s3-object-versions`
 
-* Reads ```monitor.buckets``` for a list of buckets
-* Creates a ```versions``` directory if it does not exist
+* Reads `monitor.buckets` for a list of buckets
+* Creates a `versions` directory if it does not exist
 * Initializes the ```versions``` directory as a git repo
 * For each bucket in monitor.buckets
   * Performs an aws s3api list-object-versions to ```versions/$bucket```
@@ -34,3 +47,13 @@ Generic of existing tooling to obtain archive history of public records S3 bucke
   * Fails if the directory is NOT zfs
   * Syncs using ```aws s3 sync ...```
   * Creates a snapshot indicating start time and bucket
+
+### sync-s3-minio
+
+```sync-s3-minio```
+
+Not implemented
+
+* Thin wrapper over
+  [mc mirror](https://min.io/docs/minio/linux/reference/minio-mc/mc-mirror.html)
+  probably using '--watch'
